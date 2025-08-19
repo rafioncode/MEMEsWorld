@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:memesworld/resources/auth_methods.dart';
 import 'package:memesworld/responsive/mobile_screen_layout.dart';
 import 'package:memesworld/responsive/responsive_layout.dart';
@@ -24,87 +23,98 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    super.dispose();
   }
 
-  void loginUser() async {
+  Future<void> loginUser() async {
+    FocusScope.of(context).unfocus();
     setState(() {
       _isLoading = true;
     });
-    String res = await AuthMethods().loginUser(
-        email: _emailController.text, password: _passwordController.text);
-    if (res == 'success') {
-      if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const ResponsiveLayout(
-                mobileScreenLayout: MobileScreenLayout(),
-                webScreenLayout: WebScreenLayout(),
-              ),
-            ),
-            (route) => false);
 
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    final String res = await AuthMethods().loginUser(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    );
+
+    if (!mounted) return;
+
+    if (res == 'success') {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (context) => const ResponsiveLayout(
+            mobileScreenLayout: MobileScreenLayout(),
+            webScreenLayout: WebScreenLayout(),
+          ),
+        ),
+            (route) => false,
+      );
     } else {
+      showSnackBar(context, res);
+    }
+
+    if (mounted) {
       setState(() {
         _isLoading = false;
       });
-      if (context.mounted) {
-        showSnackBar(context, res);
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Container(
-          padding: MediaQuery.of(context).size.width > webScreenSize
-              ? EdgeInsets.symmetric(
-                  horizontal: MediaQuery.of(context).size.width / 3)
+          padding: screenWidth > webScreenSize
+              ? EdgeInsets.symmetric(horizontal: screenWidth / 3)
               : const EdgeInsets.symmetric(horizontal: 32),
           width: double.infinity,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Flexible(
-                flex: 2,
-                child: Container(),
+              Container(
+                height: MediaQuery.of(context).size.height * 0.25,
+                width: double.infinity,
+                alignment: Alignment.center,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    double imageWidth = constraints.maxWidth * 0.5;
+                    if (imageWidth > 350) imageWidth = 350;
+                    if (imageWidth < 180) imageWidth = 180;
+
+                    return Image.asset(
+                      'assets/images/memesworld.png',
+                      color: primaryColor,
+                      width: imageWidth,
+                      fit: BoxFit.contain,
+                    );
+                  },
+                ),
               ),
-              Image.asset(
-                'assets/images/memesworld.png',
-                color: primaryColor,
-                height: 64,
-              ),
-              const SizedBox(
-                height: 64,
-              ),
+              const SizedBox(height: 20), // space after logo
+
               TextFieldInput(
                 hintText: 'Enter your email',
                 textInputType: TextInputType.emailAddress,
                 textEditingController: _emailController,
               ),
-              const SizedBox(
-                height: 24,
-              ),
+              SizedBox(height: screenWidth * 0.03),
+
               TextFieldInput(
                 hintText: 'Enter your password',
                 textInputType: TextInputType.text,
                 textEditingController: _passwordController,
                 isPass: true,
               ),
-              const SizedBox(
-                height: 24,
-              ),
+              SizedBox(height: screenWidth * 0.03),
+
               InkWell(
-                onTap: loginUser,
+                onTap: _isLoading ? null : loginUser,
                 child: Container(
                   width: double.infinity,
                   alignment: Alignment.center,
@@ -116,43 +126,33 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: blueColor,
                   ),
                   child: !_isLoading
-                      ? const Text(
-                          'Log in',
-                        )
-                      : const CircularProgressIndicator(
-                          color: primaryColor,
-                        ),
+                      ? const Text('Log in')
+                      : const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: primaryColor),
+                  ),
                 ),
               ),
-              const SizedBox(
-                height: 12,
-              ),
-              Flexible(
-                flex: 2,
-                child: Container(),
-              ),
+
+              SizedBox(height: screenWidth * 0.02),
+              const Spacer(flex: 2),
+
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: const Text(
-                      'Dont have an account?',
-                    ),
-                  ),
+                  const Text("Don't have an account?"),
                   GestureDetector(
                     onTap: () => Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const SignupScreen(),
                       ),
                     ),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: const Text(
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
                         ' Signup.',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),

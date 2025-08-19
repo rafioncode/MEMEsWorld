@@ -6,6 +6,7 @@ class LikeAnimation extends StatefulWidget {
   final Duration duration;
   final VoidCallback? onEnd;
   final bool smallLike;
+
   const LikeAnimation({
     super.key,
     required this.child,
@@ -43,7 +44,7 @@ class _LikeAnimationState extends State<LikeAnimation>
     }
   }
 
-  startAnimation() async {
+  Future<void> startAnimation() async { // <-- Added type annotation
     if (widget.isAnimating || widget.smallLike) {
       await controller.forward();
       await controller.reverse();
@@ -59,8 +60,8 @@ class _LikeAnimationState extends State<LikeAnimation>
 
   @override
   void dispose() {
-    super.dispose();
     controller.dispose();
+    super.dispose();
   }
 
   @override

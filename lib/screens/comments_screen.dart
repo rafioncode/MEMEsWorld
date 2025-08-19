@@ -9,20 +9,21 @@ import 'package:memesworld/widgets/comment_card.dart';
 import 'package:provider/provider.dart';
 
 class CommentsScreen extends StatefulWidget {
-  final postId;
+  final String postId; // ✅ explicit type
+
   const CommentsScreen({super.key, required this.postId});
 
   @override
-  _CommentsScreenState createState() => _CommentsScreenState();
+  CommentsScreenState createState() => CommentsScreenState(); // ✅ public
 }
 
-class _CommentsScreenState extends State<CommentsScreen> {
+class CommentsScreenState extends State<CommentsScreen> {
   final TextEditingController commentEditingController =
-      TextEditingController();
+  TextEditingController();
 
-  void postComment(String uid, String name, String profilePic) async {
+  Future<void> postComment(String uid, String name, String profilePic) async {
     try {
-      String res = await FireStoreMethods().postComment(
+      final res = await FireStoreMethods().postComment(
         widget.postId,
         commentEditingController.text,
         uid,
@@ -30,17 +31,17 @@ class _CommentsScreenState extends State<CommentsScreen> {
         profilePic,
       );
 
+      if (!mounted) return; // ✅ context safe
+
       if (res != 'success') {
-        if (context.mounted) showSnackBar(context, res);
+        showSnackBar(context, res);
       }
       setState(() {
         commentEditingController.text = "";
       });
     } catch (err) {
-      showSnackBar(
-        context,
-        err.toString(),
-      );
+      if (!mounted) return; // ✅ context safe
+      showSnackBar(context, err.toString());
     }
   }
 
@@ -51,9 +52,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mobileBackgroundColor,
-        title: const Text(
-          'Comments',
-        ),
+        title: const Text('Comments'),
         centerTitle: false,
       ),
       body: StreamBuilder(
@@ -65,9 +64,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
         builder: (context,
             AsyncSnapshot<QuerySnapshot<Map<String, dynamic>>> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           return ListView.builder(
@@ -78,12 +75,11 @@ class _CommentsScreenState extends State<CommentsScreen> {
           );
         },
       ),
-      // text input
       bottomNavigationBar: SafeArea(
         child: Container(
           height: kToolbarHeight,
           margin:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           padding: const EdgeInsets.only(left: 16, right: 8),
           child: Row(
             children: [
@@ -110,8 +106,7 @@ class _CommentsScreenState extends State<CommentsScreen> {
                   user.photoUrl,
                 ),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                   child: const Text(
                     'Post',
                     style: TextStyle(color: Colors.blue),

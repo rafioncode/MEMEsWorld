@@ -8,18 +8,17 @@ class AuthMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  // get user details
+  // Get user details
   Future<model.User> getUserDetails() async {
     User currentUser = _auth.currentUser!;
 
     DocumentSnapshot documentSnapshot =
-        await _firestore.collection('users').doc(currentUser.uid).get();
+    await _firestore.collection('users').doc(currentUser.uid).get();
 
     return model.User.fromSnap(documentSnapshot);
   }
 
-  // Signing Up User
-
+  // Signing up user
   Future<String> signUpUser({
     required String email,
     required String password,
@@ -29,20 +28,22 @@ class AuthMethods {
   }) async {
     String res = "Some error Occurred";
     try {
-      if (email.isNotEmpty ||
-          password.isNotEmpty ||
-          username.isNotEmpty ||
-          bio.isNotEmpty ||
-          file != null) {
-        // registering user in auth with email and password
+      if (email.isNotEmpty &&
+          password.isNotEmpty &&
+          username.isNotEmpty &&
+          bio.isNotEmpty &&
+          file.isNotEmpty) {
+        // Registering user in Firebase Auth
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
 
+        // Upload profile picture
         String photoUrl = await StorageMethods()
             .uploadImageToStorage('profilePics', file, false);
 
+        // Create user model
         model.User user = model.User(
           username: username,
           uid: cred.user!.uid,
@@ -53,7 +54,7 @@ class AuthMethods {
           following: [],
         );
 
-        // adding user in our database
+        // Add user to Firestore
         await _firestore
             .collection("users")
             .doc(cred.user!.uid)
@@ -69,15 +70,15 @@ class AuthMethods {
     return res;
   }
 
-  // logging in user
+  // Logging in user
   Future<String> loginUser({
     required String email,
     required String password,
   }) async {
     String res = "Some error Occurred";
     try {
-      if (email.isNotEmpty || password.isNotEmpty) {
-        // logging in user with email and password
+      if (email.isNotEmpty && password.isNotEmpty) {
+        // Logging in user with email and password
         await _auth.signInWithEmailAndPassword(
           email: email,
           password: password,
@@ -92,6 +93,7 @@ class AuthMethods {
     return res;
   }
 
+  // Signing out user
   Future<void> signOut() async {
     await _auth.signOut();
   }

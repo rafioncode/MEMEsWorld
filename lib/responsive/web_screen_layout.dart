@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/global_variable.dart';
 

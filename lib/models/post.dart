@@ -4,9 +4,9 @@ class Post {
   final String description;
   final String uid;
   final String username;
-  final likes;
+  final List likes; // ✅ fixed type
   final String postId;
-  final DateTime datePublished;
+  final DateTime datePublished; // ✅ proper type
   final String postUrl;
   final String profImage;
 
@@ -21,28 +21,31 @@ class Post {
     required this.profImage,
   });
 
+  // Convert Firestore snapshot to Post
   static Post fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
 
     return Post(
-        description: snapshot["description"] ?? '',
-        uid: snapshot["uid"] ?? '',
-        likes: snapshot["likes"] ?? '',
-        postId: snapshot["postId"] ?? '',
-        datePublished: snapshot["datePublished"] ?? '',
-        username: snapshot["username"] ?? '',
-        postUrl: snapshot['postUrl'] ?? '',
-        profImage: snapshot['profImage'] ?? '');
+      description: snapshot["description"] ?? '',
+      uid: snapshot["uid"] ?? '',
+      username: snapshot["username"] ?? '',
+      likes: snapshot["likes"] ?? [],
+      postId: snapshot["postId"] ?? '',
+      datePublished: (snapshot["datePublished"] as Timestamp).toDate(), // ✅ convert Timestamp → DateTime
+      postUrl: snapshot['postUrl'] ?? '',
+      profImage: snapshot['profImage'] ?? '',
+    );
   }
 
+  // Convert Post to JSON (for Firestore)
   Map<String, dynamic> toJson() => {
-        "description": description,
-        "uid": uid,
-        "likes": likes,
-        "username": username,
-        "postId": postId,
-        "datePublished": datePublished,
-        'postUrl': postUrl,
-        'profImage': profImage
-      };
+    "description": description,
+    "uid": uid,
+    "username": username,
+    "likes": likes,
+    "postId": postId,
+    "datePublished": datePublished,
+    "postUrl": postUrl,
+    "profImage": profImage,
+  };
 }

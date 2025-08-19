@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class CommentCard extends StatelessWidget {
-  final snap;
+  final DocumentSnapshot snap; // <-- Explicit type added
+
   const CommentCard({super.key, required this.snap});
 
   @override
@@ -13,7 +15,7 @@ class CommentCard extends StatelessWidget {
         children: [
           CircleAvatar(
             backgroundImage: NetworkImage(
-              snap.data()['profilePic'],
+              snap['profilePic'], // .data() not needed with DocumentSnapshot
             ),
             radius: 18,
           ),
@@ -28,12 +30,15 @@ class CommentCard extends StatelessWidget {
                     text: TextSpan(
                       children: [
                         TextSpan(
-                            text: snap.data()['name'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            )),
+                          text: snap['name'],
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black, // Add color to avoid default null
+                          ),
+                        ),
                         TextSpan(
-                          text: ' ${snap.data()['text']}',
+                          text: ' ${snap['text']}',
+                          style: const TextStyle(color: Colors.black),
                         ),
                       ],
                     ),
@@ -42,14 +47,14 @@ class CommentCard extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       DateFormat.yMMMd().format(
-                        snap.data()['datePublished'].toDate(),
+                        (snap['datePublished'] as Timestamp).toDate(),
                       ),
                       style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w400,
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             ),
@@ -60,7 +65,7 @@ class CommentCard extends StatelessWidget {
               Icons.favorite,
               size: 16,
             ),
-          )
+          ),
         ],
       ),
     );
