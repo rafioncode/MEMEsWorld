@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:memesworld/models/user.dart' as model;
 import 'package:memesworld/providers/user_provider.dart';
-import 'package:memesworld/resources/firestore_methods.dart';
+import 'package:memesworld/resources/database_method.dart';
 import 'package:memesworld/screens/comments_screen.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/global_variable.dart';
@@ -49,7 +49,7 @@ class _PostCardState extends State<PostCard> {
 
   Future<void> deletePost(String postId) async {
     try {
-      await FireStoreMethods().deletePost(postId);
+      await DatabaseMethods().deletePost(postId);
     } catch (err) {
       if (!mounted) return;
       showSnackBar(context, err.toString());
@@ -133,7 +133,7 @@ class _PostCardState extends State<PostCard> {
           // IMAGE SECTION
           GestureDetector(
             onDoubleTap: () {
-              FireStoreMethods().likePost(
+              DatabaseMethods().likePost(
                   widget.snap['postId'].toString(),
                   user.uid,
                   widget.snap['likes']);
@@ -179,7 +179,7 @@ class _PostCardState extends State<PostCard> {
                   icon: widget.snap['likes'].contains(user.uid)
                       ? const Icon(Icons.favorite, color: Colors.red)
                       : const Icon(Icons.favorite_border),
-                  onPressed: () => FireStoreMethods().likePost(
+                  onPressed: () => DatabaseMethods().likePost(
                       widget.snap['postId'].toString(),
                       user.uid,
                       widget.snap['likes']),

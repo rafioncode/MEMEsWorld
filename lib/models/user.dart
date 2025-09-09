@@ -9,15 +9,17 @@ class User {
   final List followers;
   final List following;
 
-  const User(
-      {required this.username,
-        required this.uid,
-        required this.photoUrl,
-        required this.email,
-        required this.bio,
-        required this.followers,
-        required this.following});
+  const User({
+    required this.username,
+    required this.uid,
+    required this.photoUrl,
+    required this.email,
+    required this.bio,
+    required this.followers,
+    required this.following,
+  });
 
+  // Convert Firestore snapshot → User object
   static User fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
 
@@ -27,18 +29,32 @@ class User {
       email: snapshot["email"] ?? '',
       photoUrl: snapshot["photoUrl"] ?? '',
       bio: snapshot["bio"] ?? '',
-      followers: snapshot["followers"] ?? '',
-      following: snapshot["following"] ?? '',
+      followers: snapshot["followers"] ?? [],
+      following: snapshot["following"] ?? [],
     );
   }
 
+  // Convert User → Map (for Firestore/JSON)
   Map<String, dynamic> toJson() => {
-    "username": username,
-    "uid": uid,
-    "email": email,
-    "photoUrl": photoUrl,
-    "bio": bio,
-    "followers": followers,
-    "following": following,
-  };
+        "username": username,
+        "uid": uid,
+        "email": email,
+        "photoUrl": photoUrl,
+        "bio": bio,
+        "followers": followers,
+        "following": following,
+      };
+
+  // Convert Map → User object
+  static User fromJson(Map<String, dynamic> map) {
+    return User(
+      username: map["username"] ?? '',
+      uid: map["uid"] ?? '',
+      email: map["email"] ?? '',
+      photoUrl: map["photoUrl"] ?? '',
+      bio: map["bio"] ?? '',
+      followers: map["followers"] ?? [],
+      following: map["following"] ?? [],
+    );
+  }
 }

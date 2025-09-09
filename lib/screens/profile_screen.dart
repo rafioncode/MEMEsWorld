@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:memesworld/resources/auth_methods.dart';
-import 'package:memesworld/resources/firestore_methods.dart';
+import 'package:memesworld/resources/database_method.dart';
 import 'package:memesworld/screens/login_screen.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/utils.dart';
@@ -166,7 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       textColor: Colors.black,
       borderColor: Colors.grey,
       function: () async {
-        await FireStoreMethods()
+        await DatabaseMethods()
             .followUser(currentUid!, userData['uid']);
         if (!mounted) return;
         setState(() {
@@ -181,7 +181,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       textColor: Colors.white,
       borderColor: Colors.blue,
       function: () async {
-        await FireStoreMethods()
+        await DatabaseMethods()
             .followUser(currentUid!, userData['uid']);
         if (!mounted) return;
         setState(() {
