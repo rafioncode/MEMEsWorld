@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:memesworld/models/user.dart';
 import 'package:memesworld/providers/user_provider.dart';
-import 'package:memesworld/resources/firestore_methods.dart';
+import 'package:memesworld/resources/database_method.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/utils.dart';
 import 'package:memesworld/widgets/comment_card.dart';
@@ -23,7 +23,7 @@ class CommentsScreenState extends State<CommentsScreen> {
 
   Future<void> postComment(String uid, String name, String profilePic) async {
     try {
-      final res = await FireStoreMethods().postComment(
+      final res = await DatabaseMethods().postComment(
         widget.postId,
         commentEditingController.text,
         uid,
