@@ -1,6 +1,4 @@
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:memesworld/resources/auth_methods.dart';
 import 'package:memesworld/responsive/mobile_screen_layout.dart';
 import 'package:memesworld/responsive/responsive_layout.dart';
@@ -23,7 +21,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
   bool _isLoading = false;
-  Uint8List? _image;
 
   @override
   void dispose() {
@@ -35,11 +32,6 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> signUpUser() async {
-    if (_image == null) {
-      showSnackBar(context, 'Please select a profile image.');
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
@@ -48,7 +40,6 @@ class _SignupScreenState extends State<SignupScreen> {
         password: _passwordController.text,
         username: _usernameController.text.trim(),
         bio: _bioController.text.trim(),
-        file: _image!,
       );
 
       if (!mounted) return;
@@ -75,12 +66,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  Future<void> selectImage() async {
-    Uint8List? im = await pickImage(ImageSource.gallery);
-    if (im != null && mounted) {
-      setState(() => _image = im);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,33 +80,11 @@ class _SignupScreenState extends State<SignupScreen> {
             children: [
               const Spacer(flex: 2),
               Image.asset(
-                'assets/images/memes_world.png',
+                'assets/images/memesworld.png',
                 color: primaryColor,
                 height: 64,
               ),
               const SizedBox(height: 64),
-              Stack(
-                children: [
-                  CircleAvatar(
-                    radius: 64,
-                    backgroundColor: Colors.red,
-                    backgroundImage: _image != null
-                        ? MemoryImage(_image!)
-                        : const NetworkImage(
-                      'https://i.stack.imgur.com/l60Hf.png',
-                    ) as ImageProvider,
-                  ),
-                  Positioned(
-                    bottom: -10,
-                    left: 80,
-                    child: IconButton(
-                      onPressed: selectImage,
-                      icon: const Icon(Icons.add_a_photo),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
               TextFieldInput(
                 hintText: 'Enter your username',
                 textInputType: TextInputType.text,

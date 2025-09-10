@@ -109,7 +109,7 @@ class CommentsScreenState extends State<CommentsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                   child: const Text(
                     'Post',
-                    style: TextStyle(color: Colors.blue),
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               )

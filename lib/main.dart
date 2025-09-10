@@ -20,11 +20,11 @@ void main() async {
   if (kIsWeb) {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
-          apiKey: 'AIzaSyBnG_LWQsWOy_bm8JGWe7vFwEOFffiVeh4',
-          appId: '1:690366703212:web:6efab1a41e5e7a54711a49',
-          messagingSenderId: '690366703212',
-          projectId: 'memesworld-e29a3',
-          storageBucket: 'memesworld-e29a3.firebasestorage.app'),
+          apiKey: 'AIzaSyCOyYZTPHi1hAFCLoIdMeEb6vUmK58XaDc',
+          appId: '1:161247614384:web:29a9edcf8fc3061eab3275',
+          messagingSenderId: '161247614384',
+          projectId: 'memesworld-9fa23',
+          storageBucket: 'memesworld-9fa23.appspot.com'),
     );
   } else {
     await Firebase.initializeApp();

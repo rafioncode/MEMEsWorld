@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:memesworld/providers/user_provider.dart';
-import 'package:memesworld/resources/database_method.dart';
+import 'package:memesworld/resources/firestore_methods.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/utils.dart';
 import 'package:provider/provider.dart';
@@ -68,7 +68,7 @@ class AddPostScreenState extends State<AddPostScreen> {
       isLoading = true;
     });
     try {
-      String res = await DatabaseMethods().uploadPost(
+      String res = await FireStoreMethods().uploadPost(
         _descriptionController.text,
         _file!,
         uid,

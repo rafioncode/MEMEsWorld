@@ -1,41 +1,22 @@
 {
   "project_info": {
-    "project_number": "690366703212",
-    "firebase_url": "https://memesworld-e29a3-default-rtdb.firebaseio.com",
-    "project_id": "memesworld-e29a3",
-    "storage_bucket": "memesworld-e29a3.firebasestorage.app"
+    "project_number": "161247614384",
+    "firebase_url": "https://memesworld-9fa23-default-rtdb.firebaseio.com",
+    "project_id": "memesworld-9fa23",
+    "storage_bucket": "memesworld-9fa23.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:690366703212:android:54f2d5b3f5974714711a49",
+        "mobilesdk_app_id": "1:161247614384:android:29a9edcf8fc3061eab3275",
         "android_client_info": {
-          "package_name": "com.example.memeswo"
+          "package_name": "com.company.memesworld"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBYZ2nBGXpeWvUqI5kf_3wq4XLeZaiG2vg"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:690366703212:android:dafd567f23dfcf1a711a49",
-        "android_client_info": {
-          "package_name": "com.example.memesworld"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBYZ2nBGXpeWvUqI5kf_3wq4XLeZaiG2vg"
+          "current_key": "AIzaSyCOyYZTPHi1hAFCLoIdMeEb6vUmK58XaDc"
         }
       ],
       "services": {

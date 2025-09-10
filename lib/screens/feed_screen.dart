@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/global_variable.dart';
 import 'package:memesworld/widgets/post_card.dart';
+import 'package:memesworld/screens/saved_memes_screen.dart'; // <-- Add this import
 
 class FeedScreen extends StatefulWidget {
   const FeedScreen({super.key});
@@ -12,6 +14,33 @@ class FeedScreen extends StatefulWidget {
 }
 
 class _FeedScreenState extends State<FeedScreen> {
+  Future<void> saveMemes() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final postsSnapshot =
+    await FirebaseFirestore.instance.collection('posts').get();
+
+    final batch = FirebaseFirestore.instance.batch();
+
+    for (final doc in postsSnapshot.docs) {
+      batch.set(
+        FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('saved_memes')
+            .doc(doc.id),
+        doc.data(),
+      );
+    }
+
+    await batch.commit();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('All memes saved!')),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -25,7 +54,7 @@ class _FeedScreenState extends State<FeedScreen> {
         backgroundColor: mobileBackgroundColor,
         centerTitle: false,
         title: Image.asset(
-          'assets/images/memes_world.png',
+          'assets/images/memesworld.png',
           color: primaryColor,
           height: 64,
         ),
@@ -35,7 +64,20 @@ class _FeedScreenState extends State<FeedScreen> {
               Icons.messenger_outline,
               color: primaryColor,
             ),
-            onPressed: () {},
+            onPressed: saveMemes,
+          ),
+          IconButton(
+            icon: const Icon(
+              Icons.bookmark,
+              color: primaryColor,
+            ),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SavedMemesScreen(),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -65,7 +107,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   vertical: width > webScreenSize ? 15 : 0,
                 ),
                 child: PostCard(
-                  snap: postSnap, // Pass DocumentSnapshot directly
+                  snap: postSnap,
                 ),
               );
             },

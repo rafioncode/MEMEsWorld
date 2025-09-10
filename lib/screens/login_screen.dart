@@ -7,7 +7,6 @@ import 'package:memesworld/screens/signup_screen.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/global_variable.dart';
 import 'package:memesworld/utils/utils.dart';
-import 'package:memesworld/widgets/text_field_input.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,7 +43,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (res == 'success') {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
-          builder: (context) => const ResponsiveLayout(
+          builder: (context) => ResponsiveLayout(
             mobileScreenLayout: MobileScreenLayout(),
             webScreenLayout: WebScreenLayout(),
           ),
@@ -126,11 +125,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: blueColor,
                   ),
                   child: !_isLoading
-                      ? const Text('Log in')
+                      ? const Text(
+                    'Log in',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  )
                       : const SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: primaryColor),
+                    child:
+                    CircularProgressIndicator(strokeWidth: 2, color: primaryColor),
                   ),
                 ),
               ),
@@ -162,6 +165,51 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A simple reusable TextField widget (previously in widgets/text_field_input.dart).
+/// Keeps styling consistent across login/signup screens.
+class TextFieldInput extends StatelessWidget {
+  final TextEditingController textEditingController;
+  final TextInputType textInputType;
+  final String hintText;
+  final bool isPass;
+
+  const TextFieldInput({
+    Key? key,
+    required this.textEditingController,
+    required this.textInputType,
+    required this.hintText,
+    this.isPass = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: textEditingController,
+      keyboardType: textInputType,
+      obscureText: isPass,
+      decoration: InputDecoration(
+        hintText: hintText,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        filled: true,
+        fillColor: Colors.black,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(6),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+      ),
+      style: const TextStyle(fontSize: 14),
     );
   }
 }

@@ -1,27 +1,24 @@
 import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:memesworld/models/user.dart' as model;
 import 'package:memesworld/resources/storage_methods.dart';
 
 class AuthMethods {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final DatabaseReference _db = FirebaseDatabase.instance.ref();
 
-  // get user details
+  // Get user details
   Future<model.User> getUserDetails() async {
     User currentUser = _auth.currentUser!;
 
-    final snapshot = await _db.child("users/${currentUser.uid}").get();
+    DocumentSnapshot documentSnapshot =
+    await _firestore.collection('users').doc(currentUser.uid).get();
 
-    if (!snapshot.exists) {
-      throw Exception("User not found in database");
-    }
-
-    return model.User.fromJson(Map<String, dynamic>.from(snapshot.value as Map));
+    return model.User.fromSnap(documentSnapshot);
   }
 
-  // Signing Up User
+  // Signing up user
   Future<String> signUpUser({
     required String email,
     required String password,
@@ -34,17 +31,19 @@ class AuthMethods {
       if (email.isNotEmpty &&
           password.isNotEmpty &&
           username.isNotEmpty &&
-          bio.isNotEmpty) {
-        // Register user
+          bio.isNotEmpty &&
+          file.isNotEmpty) {
+        // Registering user in Firebase Auth
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        // Upload profile image
+        // Upload profile picture
         String photoUrl = await StorageMethods()
             .uploadImageToStorage('profilePics', file, false);
 
+        // Create user model
         model.User user = model.User(
           username: username,
           uid: cred.user!.uid,
@@ -55,8 +54,11 @@ class AuthMethods {
           following: [],
         );
 
-        // Save user in RTDB
-        await _db.child("users/${cred.user!.uid}").set(user.toJson());
+        // Add user to Firestore
+        await _firestore
+            .collection("users")
+            .doc(cred.user!.uid)
+            .set(user.toJson());
 
         res = "success";
       } else {
@@ -68,7 +70,7 @@ class AuthMethods {
     return res;
   }
 
-  // logging in user
+  // Logging in user
   Future<String> loginUser({
     required String email,
     required String password,
@@ -76,6 +78,7 @@ class AuthMethods {
     String res = "Some error Occurred";
     try {
       if (email.isNotEmpty && password.isNotEmpty) {
+        // Logging in user with email and password
         await _auth.signInWithEmailAndPassword(
           email: email,
           password: password,
@@ -90,6 +93,7 @@ class AuthMethods {
     return res;
   }
 
+  // Signing out user
   Future<void> signOut() async {
     await _auth.signOut();
   }
