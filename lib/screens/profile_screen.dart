@@ -74,6 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: mobileBackgroundColor,
@@ -81,84 +83,103 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: false,
       ),
       body: ListView(
+        padding: const EdgeInsets.all(16),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 40,
+                backgroundColor: Colors.grey,
+                backgroundImage: userData['photoUrl'] != null
+                    ? NetworkImage(userData['photoUrl'])
+                    : null,
+              ),
+              Expanded(
+                child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: Colors.grey,
-                      backgroundImage: userData['photoUrl'] != null
-                          ? NetworkImage(userData['photoUrl'])
-                          : null,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        buildStatColumn(postLen, "posts"),
+                        buildStatColumn(followers, "followers"),
+                        buildStatColumn(following, "following"),
+                      ],
                     ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              buildStatColumn(postLen, "posts"),
-                              buildStatColumn(followers, "followers"),
-                              buildStatColumn(following, "following"),
-                            ],
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              buildActionButton(),
-                            ],
-                          ),
-                        ],
+                    const SizedBox(height: 8),
+                    if (currentUid != widget.uid)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [buildFollowButton()],
                       ),
-                    ),
                   ],
                 ),
-                const SizedBox(height: 10),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    userData['username'] ?? '',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(userData['bio'] ?? ''),
-                ),
-              ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              userData['username'] ?? '',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
+          ),
+          const SizedBox(height: 4),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(userData['bio'] ?? ''),
           ),
           const Divider(),
           buildPostsGrid(),
         ],
       ),
+      bottomNavigationBar: currentUid == widget.uid
+          ? Padding(
+        padding: const EdgeInsets.all(16),
+        child: SizedBox(
+          height: 50,
+          child: FollowButton(
+            text: 'Sign Out',
+            backgroundColor: mobileBackgroundColor,
+            textColor: primaryColor,
+            borderColor: Colors.grey,
+            function: () async {
+              await AuthMethods().signOut();
+              if (!mounted) return;
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+              );
+            },
+          ),
+        ),
+      )
+          : null,
     );
   }
 
-  Widget buildActionButton() {
+  Column buildStatColumn(int num, String label) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          num.toString(),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w400,
+            color: Colors.grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget buildFollowButton() {
     final currentUid = FirebaseAuth.instance.currentUser?.uid;
-
-    if (currentUid == widget.uid) {
-      return FollowButton(
-        text: 'Sign Out',
-        backgroundColor: mobileBackgroundColor,
-        textColor: primaryColor,
-        borderColor: Colors.grey,
-        function: () async {
-          await AuthMethods().signOut();
-          if (!mounted) return;
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => const LoginScreen()),
-          );
-        },
-      );
-    }
-
     return isFollowing
         ? FollowButton(
       text: 'Unfollow',
@@ -242,27 +263,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           },
         );
       },
-    );
-  }
-
-  Column buildStatColumn(int num, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          num.toString(),
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w400,
-            color: Colors.grey,
-          ),
-        ),
-      ],
     );
   }
 }

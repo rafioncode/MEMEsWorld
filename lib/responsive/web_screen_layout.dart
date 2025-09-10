@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:memesworld/utils/colors.dart';
-import 'package:memesworld/utils/global_variable.dart';
+import 'package:memesworld/screens/add_post_screen.dart';
+import 'package:memesworld/screens/feed_screen.dart';
+import 'package:memesworld/screens/notification_screen.dart';
+import 'package:memesworld/screens/profile_screen.dart';
+import 'package:memesworld/screens/search_screen.dart';
 
 class WebScreenLayout extends StatefulWidget {
   const WebScreenLayout({super.key});
@@ -11,7 +16,7 @@ class WebScreenLayout extends StatefulWidget {
 
 class _WebScreenLayoutState extends State<WebScreenLayout> {
   int _page = 0;
-  late PageController pageController; // for tabs animation
+  late PageController pageController;
 
   @override
   void initState() {
@@ -21,8 +26,8 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
 
   @override
   void dispose() {
-    super.dispose();
     pageController.dispose();
+    super.dispose();
   }
 
   void onPageChanged(int page) {
@@ -32,7 +37,6 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
   }
 
   void navigationTapped(int page) {
-    //Animating Page
     pageController.jumpToPage(page);
     setState(() {
       _page = page;
@@ -67,14 +71,14 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
           ),
           IconButton(
             icon: Icon(
-              Icons.add_a_photo,
+              Icons.post_add,
               color: _page == 2 ? primaryColor : secondaryColor,
             ),
             onPressed: () => navigationTapped(2),
           ),
           IconButton(
             icon: Icon(
-              Icons.favorite,
+              Icons.notifications,
               color: _page == 3 ? primaryColor : secondaryColor,
             ),
             onPressed: () => navigationTapped(3),
@@ -92,7 +96,13 @@ class _WebScreenLayoutState extends State<WebScreenLayout> {
         physics: const NeverScrollableScrollPhysics(),
         controller: pageController,
         onPageChanged: onPageChanged,
-        children: homeScreenItems,
+        children: [
+          const FeedScreen(),               // 0 - Feed
+          const SearchScreen(),             // 1 - Search
+          const AddPostScreen(),            // 2 - Post
+          const NotificationScreen(),       // 3 - Notifications
+          ProfileScreen(uid: FirebaseAuth.instance.currentUser!.uid),  // 4 - Profile
+        ],
       ),
     );
   }

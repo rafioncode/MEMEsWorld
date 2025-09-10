@@ -61,6 +61,22 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Function for sending password reset email
+  Future<void> resetPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      showSnackBar(context, "Please enter your email first!");
+      return;
+    }
+
+    try {
+      await AuthMethods().resetPassword(email);
+      showSnackBar(context, "Password reset email sent!");
+    } catch (e) {
+      showSnackBar(context, "Failed to send reset email: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -98,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 20), // space after logo
 
               TextFieldInput(
-                hintText: 'Enter your email',
+                hintText: 'Enter your gmail account',
                 textInputType: TextInputType.emailAddress,
                 textEditingController: _emailController,
               ),
@@ -110,6 +126,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 textEditingController: _passwordController,
                 isPass: true,
               ),
+              SizedBox(height: screenWidth * 0.01),
+
+              // Forgot Password section
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: resetPassword,
+                  child: const Text(
+                    "Forgot Password?",
+                    style: TextStyle(color: blueColor, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ),
+
               SizedBox(height: screenWidth * 0.03),
 
               InkWell(
@@ -132,8 +162,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const SizedBox(
                     height: 20,
                     width: 20,
-                    child:
-                    CircularProgressIndicator(strokeWidth: 2, color: primaryColor),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: primaryColor,
+                    ),
                   ),
                 ),
               ),
@@ -169,8 +201,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-/// A simple reusable TextField widget (previously in widgets/text_field_input.dart).
-/// Keeps styling consistent across login/signup screens.
+/// Reusable TextField widget
 class TextFieldInput extends StatelessWidget {
   final TextEditingController textEditingController;
   final TextInputType textInputType;

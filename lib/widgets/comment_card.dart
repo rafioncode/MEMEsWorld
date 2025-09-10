@@ -47,7 +47,7 @@ class _CommentCardState extends State<CommentCard> {
     });
 
     await FirebaseFirestore.instance
-        .collection('comments') // ⚠️ change if nested under posts
+        .collection('comments') // ⚠️ adjust path if nested under posts
         .doc(commentId)
         .update({'likes': likes});
   }
@@ -122,18 +122,33 @@ class _CommentCardState extends State<CommentCard> {
             ),
           ),
 
-          // Like button
+          // Like button with emoji
           Column(
             children: [
-              IconButton(
-                icon: Icon(
-                  likes.contains(user.uid)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color: likes.contains(user.uid) ? Colors.red : Colors.white,
-                  size: 20,
+              GestureDetector(
+                onTap: toggleLike,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.all(4),
+                  child: Text(
+                    '😂',
+                    style: TextStyle(
+                      fontSize: 22,
+                      color:
+                      likes.contains(user.uid) ? Colors.orange : Colors.white70,
+                      shadows: likes.contains(user.uid)
+                          ? [
+                        const Shadow(
+                          blurRadius: 5,
+                          color: Colors.orangeAccent,
+                          offset: Offset(0, 0),
+                        ),
+                      ]
+                          : null,
+                    ),
+                  ),
                 ),
-                onPressed: toggleLike,
               ),
               Text(
                 '${likes.length}',

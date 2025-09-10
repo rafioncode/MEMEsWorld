@@ -65,13 +65,11 @@ class _PostCardState extends State<PostCard> {
           title: const Text('Share with user'),
           content: TextField(
             controller: controller,
-            decoration:
-            const InputDecoration(hintText: 'Enter recipient email'),
+            decoration: const InputDecoration(hintText: 'Enter recipient email'),
           ),
           actions: [
             TextButton(
-              onPressed: () =>
-                  Navigator.of(context).pop(controller.text.trim()),
+              onPressed: () => Navigator.of(context).pop(controller.text.trim()),
               child: const Text('Send'),
             ),
             TextButton(
@@ -180,17 +178,33 @@ class _PostCardState extends State<PostCard> {
               ],
             ),
           ),
-          // LIKE & COMMENT & SHARE SECTION
+
+          // LIKE / COMMENT / SHARE SECTION
           Row(
             children: [
-              IconButton(
-                icon: Icon(
-                  likes.contains(user.uid)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color: likes.contains(user.uid) ? Colors.yellow : null,
+              GestureDetector(
+                onTap: toggleLike,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  padding: const EdgeInsets.all(4),
+                  child: Text(
+                    '😂',
+                    style: TextStyle(
+                      fontSize: 28,
+                      color: likes.contains(user.uid) ? Colors.orange : Colors.grey,
+                      shadows: likes.contains(user.uid)
+                          ? [
+                        const Shadow(
+                          blurRadius: 5,
+                          color: Colors.orangeAccent,
+                          offset: Offset(0, 0),
+                        ),
+                      ]
+                          : null,
+                    ),
+                  ),
                 ),
-                onPressed: toggleLike,
               ),
               IconButton(
                 icon: const Icon(Icons.comment_outlined),
@@ -206,6 +220,7 @@ class _PostCardState extends State<PostCard> {
               ),
             ],
           ),
+
           // DESCRIPTION & COMMENTS
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -214,7 +229,7 @@ class _PostCardState extends State<PostCard> {
               children: [
                 // Likes count
                 Text(
-                  '${likes.length} likes',
+                  '${likes.length} reactions',
                   style: Theme.of(context)
                       .textTheme
                       .bodyMedium!
@@ -226,8 +241,9 @@ class _PostCardState extends State<PostCard> {
                     style: const TextStyle(color: primaryColor),
                     children: [
                       TextSpan(
-                          text: data['username']?.toString() ?? 'Unknown',
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                        text: data['username']?.toString() ?? 'Unknown',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       TextSpan(text: ' ${data['caption'] ?? ''}'),
                     ],
                   ),
@@ -237,14 +253,11 @@ class _PostCardState extends State<PostCard> {
                     MaterialPageRoute(
                         builder: (context) => CommentsScreen(postId: postId)),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 4),
                     child: Text(
                       'View all comments',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.blue,
-                      ),
+                      style: TextStyle(fontSize: 16, color: Colors.blue),
                     ),
                   ),
                 ),
@@ -252,8 +265,8 @@ class _PostCardState extends State<PostCard> {
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     data['timestamp'] != null && data['timestamp'] is Timestamp
-                        ? DateFormat.yMMMd()
-                        .format((data['timestamp'] as Timestamp).toDate())
+                        ? DateFormat.yMMMd().format(
+                        (data['timestamp'] as Timestamp).toDate())
                         : '',
                     style: const TextStyle(color: secondaryColor),
                   ),

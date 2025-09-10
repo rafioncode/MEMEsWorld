@@ -12,7 +12,7 @@ class MobileScreenLayout extends StatefulWidget {
 
 class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   int _page = 0;
-  late PageController pageController; // for tabs animation
+  late PageController pageController;
 
   @override
   void initState() {
@@ -22,8 +22,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
 
   @override
   void dispose() {
-    super.dispose();
     pageController.dispose();
+    super.dispose();
   }
 
   void onPageChanged(int page) {
@@ -33,8 +33,10 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
   }
 
   void navigationTapped(int page) {
-    //Animating Page
     pageController.jumpToPage(page);
+    setState(() {
+      _page = page;
+    });
   }
 
   @override
@@ -47,6 +49,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
       ),
       bottomNavigationBar: CupertinoTabBar(
         backgroundColor: mobileBackgroundColor,
+        currentIndex: _page,
+        onTap: navigationTapped,
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(
@@ -54,29 +58,27 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               color: (_page == 0) ? primaryColor : secondaryColor,
             ),
             label: '',
-            backgroundColor: primaryColor,
           ),
           BottomNavigationBarItem(
-              icon: Icon(
-                Icons.search,
-                color: (_page == 1) ? primaryColor : secondaryColor,
-              ),
-              label: '',
-              backgroundColor: primaryColor),
-          BottomNavigationBarItem(
-              icon: Icon(
-                Icons.add_circle,
-                color: (_page == 2) ? primaryColor : secondaryColor,
-              ),
-              label: '',
-              backgroundColor: primaryColor),
+            icon: Icon(
+              Icons.search,
+              color: (_page == 1) ? primaryColor : secondaryColor,
+            ),
+            label: '',
+          ),
           BottomNavigationBarItem(
             icon: Icon(
-              Icons.favorite,
+              Icons.post_add, // updated post icon
+              color: (_page == 2) ? primaryColor : secondaryColor,
+            ),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(
+              Icons.notifications, // updated notifications icon
               color: (_page == 3) ? primaryColor : secondaryColor,
             ),
             label: '',
-            backgroundColor: primaryColor,
           ),
           BottomNavigationBarItem(
             icon: Icon(
@@ -84,11 +86,8 @@ class _MobileScreenLayoutState extends State<MobileScreenLayout> {
               color: (_page == 4) ? primaryColor : secondaryColor,
             ),
             label: '',
-            backgroundColor: primaryColor,
           ),
         ],
-        onTap: navigationTapped,
-        currentIndex: _page,
       ),
     );
   }
