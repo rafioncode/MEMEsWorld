@@ -1,18 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:memesworld/models/user.dart' as model;
 import 'package:memesworld/providers/user_provider.dart';
-import 'package:memesworld/resources/firestore_methods.dart';
 import 'package:memesworld/screens/comments_screen.dart';
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/global_variable.dart';
-import 'package:memesworld/utils/utils.dart';
-import 'package:memesworld/widgets/like_animation.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 class PostCard extends StatefulWidget {
-  final DocumentSnapshot snap; // Explicit type annotation
+  final dynamic snap; // DocumentSnapshot or Map
 
   const PostCard({super.key, required this.snap});
 
@@ -21,51 +19,105 @@ class PostCard extends StatefulWidget {
 }
 
 class _PostCardState extends State<PostCard> {
-  int commentLen = 0;
-  bool isLikeAnimating = false;
+  late Map<String, dynamic> data;
+  late model.User user;
+  late String postId;
+  late List likes;
 
   @override
   void initState() {
     super.initState();
-    fetchCommentLen();
+    data = widget.snap.data() as Map<String, dynamic>? ?? {};
+    postId = widget.snap.id;
+    likes = data['likes'] is List ? List.from(data['likes']) : [];
   }
 
-  Future<void> fetchCommentLen() async {
-    try {
-      final snap = await FirebaseFirestore.instance
-          .collection('posts')
-          .doc(widget.snap['postId'])
-          .collection('comments')
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    user = Provider.of<UserProvider>(context).getUser;
+  }
+
+  void toggleLike() async {
+    final uid = user.uid;
+    final isLiked = likes.contains(uid);
+
+    setState(() {
+      if (isLiked) {
+        likes.remove(uid);
+      } else {
+        likes.add(uid);
+      }
+    });
+
+    await FirebaseFirestore.instance
+        .collection('posts')
+        .doc(postId)
+        .update({'likes': likes});
+  }
+
+  Future<void> sharePost() async {
+    String? recipientEmail = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        final controller = TextEditingController();
+        return AlertDialog(
+          title: const Text('Share with user'),
+          content: TextField(
+            controller: controller,
+            decoration:
+            const InputDecoration(hintText: 'Enter recipient email'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () =>
+                  Navigator.of(context).pop(controller.text.trim()),
+              child: const Text('Send'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (recipientEmail != null && recipientEmail.isNotEmpty) {
+      final userQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('email', isEqualTo: recipientEmail)
+          .limit(1)
           .get();
-      if (!mounted) return; // Avoid using context across async gaps
-      setState(() {
-        commentLen = snap.docs.length;
-      });
-    } catch (err) {
-      if (!mounted) return;
-      showSnackBar(context, err.toString());
-    }
-  }
 
-  Future<void> deletePost(String postId) async {
-    try {
-      await FireStoreMethods().deletePost(postId);
-    } catch (err) {
-      if (!mounted) return;
-      showSnackBar(context, err.toString());
+      if (userQuery.docs.isNotEmpty) {
+        await FirebaseFirestore.instance.collection('shared_posts').add({
+          'from': user.email,
+          'to': recipientEmail,
+          'postId': postId,
+          'caption': data['caption'] ?? '',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Post shared with $recipientEmail!')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('User not found!')),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final model.User user = Provider.of<UserProvider>(context).getUser;
     final width = MediaQuery.of(context).size.width;
 
     return Container(
       decoration: BoxDecoration(
         border: Border.all(
-          color:
-          width > webScreenSize ? secondaryColor : mobileBackgroundColor,
+          color: width > webScreenSize ? secondaryColor : mobileBackgroundColor,
         ),
         color: mobileBackgroundColor,
       ),
@@ -78,27 +130,22 @@ class _PostCardState extends State<PostCard> {
                 .copyWith(right: 0),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundImage:
-                  NetworkImage(widget.snap['profImage'].toString()),
-                ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.only(left: 0),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.snap['username'].toString(),
+                          data['username']?.toString() ?? 'Unknown',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
                   ),
                 ),
-                if (widget.snap['uid'].toString() == user.uid)
+                if (data['uid']?.toString() == user.uid)
                   IconButton(
                     onPressed: () {
                       showDialog(
@@ -115,8 +162,11 @@ class _PostCardState extends State<PostCard> {
                                       vertical: 12, horizontal: 16),
                                   child: const Text('Delete'),
                                 ),
-                                onTap: () {
-                                  deletePost(widget.snap['postId'].toString());
+                                onTap: () async {
+                                  await FirebaseFirestore.instance
+                                      .collection('posts')
+                                      .doc(postId)
+                                      .delete();
                                   Navigator.of(context).pop();
                                 },
                               ),
@@ -130,77 +180,29 @@ class _PostCardState extends State<PostCard> {
               ],
             ),
           ),
-          // IMAGE SECTION
-          GestureDetector(
-            onDoubleTap: () {
-              FireStoreMethods().likePost(
-                  widget.snap['postId'].toString(),
-                  user.uid,
-                  widget.snap['likes']);
-              setState(() => isLikeAnimating = true);
-            },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  height: MediaQuery.of(context).size.height * 0.35,
-                  width: double.infinity,
-                  child: Image.network(
-                    widget.snap['postUrl'].toString(),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                AnimatedOpacity(
-                  duration: const Duration(milliseconds: 200),
-                  opacity: isLikeAnimating ? 1 : 0,
-                  child: LikeAnimation(
-                    isAnimating: isLikeAnimating,
-                    duration: const Duration(milliseconds: 400),
-                    onEnd: () {
-                      setState(() => isLikeAnimating = false);
-                    },
-                    child: const Icon(
-                      Icons.favorite,
-                      color: Colors.white,
-                      size: 100,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // LIKE & COMMENT SECTION
+          // LIKE & COMMENT & SHARE SECTION
           Row(
             children: [
-              LikeAnimation(
-                isAnimating: widget.snap['likes'].contains(user.uid),
-                smallLike: true,
-                child: IconButton(
-                  icon: widget.snap['likes'].contains(user.uid)
-                      ? const Icon(Icons.favorite, color: Colors.red)
-                      : const Icon(Icons.favorite_border),
-                  onPressed: () => FireStoreMethods().likePost(
-                      widget.snap['postId'].toString(),
-                      user.uid,
-                      widget.snap['likes']),
+              IconButton(
+                icon: Icon(
+                  likes.contains(user.uid)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  color: likes.contains(user.uid) ? Colors.yellow : null,
                 ),
+                onPressed: toggleLike,
               ),
               IconButton(
                 icon: const Icon(Icons.comment_outlined),
                 onPressed: () => Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) =>
-                        CommentsScreen(postId: widget.snap['postId'].toString()),
+                    builder: (context) => CommentsScreen(postId: postId),
                   ),
                 ),
               ),
-              IconButton(icon: const Icon(Icons.send), onPressed: () {}),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.bottomRight,
-                  child: IconButton(
-                      icon: const Icon(Icons.bookmark_border), onPressed: () {}),
-                ),
+              IconButton(
+                icon: const Icon(Icons.send),
+                onPressed: sharePost,
               ),
             ],
           ),
@@ -210,44 +212,85 @@ class _PostCardState extends State<PostCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${widget.snap['likes'].length} likes',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium!
-                        .copyWith(fontWeight: FontWeight.w800)),
+                // Likes count
+                Text(
+                  '${likes.length} likes',
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium!
+                      .copyWith(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 4),
                 RichText(
                   text: TextSpan(
                     style: const TextStyle(color: primaryColor),
                     children: [
                       TextSpan(
-                          text: widget.snap['username'].toString(),
+                          text: data['username']?.toString() ?? 'Unknown',
                           style: const TextStyle(fontWeight: FontWeight.bold)),
-                      TextSpan(text: ' ${widget.snap['description']}'),
+                      TextSpan(text: ' ${data['caption'] ?? ''}'),
                     ],
                   ),
                 ),
                 InkWell(
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
-                        builder: (context) => CommentsScreen(
-                            postId: widget.snap['postId'].toString())),
+                        builder: (context) => CommentsScreen(postId: postId)),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Text(
-                      'View all $commentLen comments',
-                      style: const TextStyle(fontSize: 16, color: secondaryColor),
+                      'View all comments',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.blue,
+                      ),
                     ),
                   ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
-                    DateFormat.yMMMd()
-                        .format((widget.snap['datePublished'] as Timestamp).toDate()),
+                    data['timestamp'] != null && data['timestamp'] is Timestamp
+                        ? DateFormat.yMMMd()
+                        .format((data['timestamp'] as Timestamp).toDate())
+                        : '',
                     style: const TextStyle(color: secondaryColor),
                   ),
+                ),
+                // COMMENTS SECTION
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('posts')
+                      .doc(postId)
+                      .collection('comments')
+                      .orderBy('timestamp', descending: false)
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: snapshot.data!.docs.map((doc) {
+                        final comment =
+                            doc.data() as Map<String, dynamic>? ?? {};
+                        final commentText =
+                            comment['text']?.toString().trim() ?? '';
+                        if (commentText.isEmpty) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 2.0),
+                          child: Text(
+                            '${comment['username'] ?? 'User'}: $commentText',
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 15,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    );
+                  },
                 ),
               ],
             ),

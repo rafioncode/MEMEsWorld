@@ -3,10 +3,10 @@ import 'package:memesworld/resources/auth_methods.dart';
 import 'package:memesworld/responsive/mobile_screen_layout.dart';
 import 'package:memesworld/responsive/responsive_layout.dart';
 import 'package:memesworld/responsive/web_screen_layout.dart';
-import 'package:memesworld/screens/login_screen.dart';
+import 'package:memesworld/screens/login_screen.dart' as login; // Prefixed to avoid conflict
 import 'package:memesworld/utils/colors.dart';
 import 'package:memesworld/utils/utils.dart';
-import 'package:memesworld/widgets/text_field_input.dart';
+import 'package:memesworld/widgets/text_field_input.dart'; // This is the one used for TextFieldInput
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -65,7 +65,6 @@ class _SignupScreenState extends State<SignupScreen> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -137,8 +136,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     onTap: () {
                       if (mounted) {
                         Navigator.of(context).push(
-                          MaterialPageRoute(
-                              builder: (_) => const LoginScreen()),
+                          MaterialPageRoute(builder: (_) => const login.LoginScreen()),
                         );
                       }
                     },

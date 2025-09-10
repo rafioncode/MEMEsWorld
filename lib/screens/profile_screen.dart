@@ -31,7 +31,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> getData() async {
-    if (!mounted) return; // safeguard early exit
+    if (!mounted) return;
     setState(() {
       isLoading = true;
     });
@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           .where('uid', isEqualTo: widget.uid)
           .get();
 
-      if (!mounted) return; // check again after async calls
+      if (!mounted) return;
 
       final data = userSnap.data() ?? {};
       final currentUid = FirebaseAuth.instance.currentUser?.uid;
@@ -166,8 +166,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       textColor: Colors.black,
       borderColor: Colors.grey,
       function: () async {
-        await FireStoreMethods()
-            .followUser(currentUid!, userData['uid']);
+        await FireStoreMethods().followUser(currentUid!, userData['uid']);
         if (!mounted) return;
         setState(() {
           isFollowing = false;
@@ -181,8 +180,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       textColor: Colors.white,
       borderColor: Colors.blue,
       function: () async {
-        await FireStoreMethods()
-            .followUser(currentUid!, userData['uid']);
+        await FireStoreMethods().followUser(currentUid!, userData['uid']);
         if (!mounted) return;
         setState(() {
           isFollowing = true;
@@ -220,10 +218,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             childAspectRatio: 1,
           ),
           itemBuilder: (context, index) {
-            final snap = posts[index];
-            return Image.network(
-              snap['postUrl'],
-              fit: BoxFit.cover,
+            final snap = posts[index].data();
+            return Container(
+              margin: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.blueGrey.shade900,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: Text(
+                  snap['caption'] ?? '',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             );
           },
         );

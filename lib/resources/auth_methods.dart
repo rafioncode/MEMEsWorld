@@ -1,8 +1,6 @@
-import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:memesworld/models/user.dart' as model;
-import 'package:memesworld/resources/storage_methods.dart';
 
 class AuthMethods {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -24,24 +22,21 @@ class AuthMethods {
     required String password,
     required String username,
     required String bio,
-    required Uint8List file,
   }) async {
     String res = "Some error Occurred";
     try {
       if (email.isNotEmpty &&
           password.isNotEmpty &&
           username.isNotEmpty &&
-          bio.isNotEmpty &&
-          file.isNotEmpty) {
+          bio.isNotEmpty) {
         // Registering user in Firebase Auth
         UserCredential cred = await _auth.createUserWithEmailAndPassword(
           email: email,
           password: password,
         );
 
-        // Upload profile picture
-        String photoUrl = await StorageMethods()
-            .uploadImageToStorage('profilePics', file, false);
+        // Use default profile picture
+        String photoUrl = 'https://i.stack.imgur.com/l60Hf.png';
 
         // Create user model
         model.User user = model.User(
